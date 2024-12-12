@@ -8,16 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RafaeldelRio/daweb.git"
+    "url": "git+https://github.com/JairoPerte/Tarea-4.1-Despliege.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/RafaeldelRio/daweb/issues"
+    "url": "https://github.com/JairoPerte/Tarea-4.1-Despliege/issues"
   },
-  "homepage": "https://github.com/RafaeldelRio/daweb#readme",
+  "homepage": "https://github.com/JairoPerte/Tarea-4.1-Despliege#readme",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.21.2"
   }
 }
