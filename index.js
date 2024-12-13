@@ -80,9 +80,7 @@ app.put("/concesionarios/:id", (request, response) => {
 // Borrar un elemento del array
 app.delete("/concesionarios/:id", (request, response) => {
   const id = request.params.id;
-  concesionarios = concesionarios.filter(
-    (item) => concesionarios.indexOf(item) !== id
-  );
+  concesionarios.splice(id, 1);
 
   response.json({ message: "ok" });
 });
@@ -121,9 +119,7 @@ app.put("/concesionarios/:id/coches/:cocheid", (request, response) => {
 app.delete("/concesionarios/:id/coches/:cocheid", (request, response) => {
   const id = request.params.id;
   const cocheid = request.params.cocheid;
-  concesionarios = concesionarios.filter(
-    (item) => concesionarios[id].coches.indexOf(item) !== cocheid
-  );
+  concesionarios[id].coches.splice(cocheid, 1);
 
   response.json({ message: "ok" });
 });
