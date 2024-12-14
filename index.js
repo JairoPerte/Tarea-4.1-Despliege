@@ -123,3 +123,5 @@ app.delete("/concesionarios/:id/coches/:cocheid", (request, response) => {
 
   response.json({ message: "ok" });
 });
+
+var variableNoUtilizada;
