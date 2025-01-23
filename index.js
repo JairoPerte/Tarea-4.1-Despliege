@@ -6,11 +6,11 @@
  */
 
 // Importar mongodb
-const { MongoClient, ServerApiVersion, Db } = require("mongodb");
+const { MongoClient, ServerApiVersion, Db, ObjectId } = require("mongodb");
 
 // URL de la conexión
 const uri =
-  "mongodb+srv://jairopertecarras:<db_password>@cluster0.iqta3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+  "mongodb+srv://jairopertecarras:0KDqpwXztJapX3mW@cluster0.iqta3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 // Importamos las bibliotecas necesarias.
 // Concretamente el framework express.
@@ -43,6 +43,7 @@ async function run() {
     // Indicamos el puerto en el que vamos a desplegar la aplicación
     const port = process.env.PORT || 8080;
 
+    // Obtenemos la base de datos y la colección concesionario
     const db = client.db("concesionario");
     const concesionarios = db.collection("concesionario");
 
@@ -52,88 +53,208 @@ async function run() {
     });
 
     // Lista todos los concesionarios
-    app.get("/concesionarios", (request, response) => {
-      response.json(concesionarios.find());
+    app.get("/concesionarios", async (request, response) => {
+      try {
+        // Encontramos todos concesionario
+        response.json(await concesionarios.find().toArray());
+      } catch (e) {
+        console.error("Error al listar:", e);
+      }
     });
 
     // Añadir un nuevo concesionario
-    app.post("/concesionarios", (request, response) => {
-      concesionarios.insertOne(request.body);
-      response.json({ message: "ok" });
+    app.post("/concesionarios", async (request, response) => {
+      try {
+        await concesionarios.insertOne(request.body);
+
+        response.json({ message: "ok" });
+      } catch (e) {
+        console.error("Error al añadir:", e);
+      }
     });
 
     // Obtener un solo concesionario
-    app.get("/concesionarios/:id", (request, response) => {
-      const id = request.params.id;
-      const result = concesionarios.findOne({ _id: id });
-      response.json({ result });
+    app.get("/concesionarios/:id", async (request, response) => {
+      try {
+        // Obtenemos los datos de ruta
+        const id = request.params.id;
+
+        // Encontramos el concesionario
+        // (el id es un objeto especial de MongoDB por eso lo ponemos así)
+        const result = await concesionarios.findOne({ _id: new ObjectId(id) });
+
+        response.json(result);
+      } catch (e) {
+        console.error("Error al obtener:", e);
+      }
     });
 
     // Actualizar un solo concesionarios
-    app.put("/concesionarios/:id", (request, response) => {
-      const id = request.params.id;
-      concesionarios.updateOne({ _id: id }, request.body);
-      response.json({ message: "ok" });
+    app.put("/concesionarios/:id", async (request, response) => {
+      try {
+        // Obtenemos los datos de ruta
+        const id = request.params.id;
+
+        await concesionarios.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: request.body }
+        );
+
+        response.json({ message: "ok" });
+      } catch (e) {
+        console.error("Error al actualizar:", e);
+      }
     });
 
-    // Borrar un elemento del array
-    app.delete("/concesionarios/:id", (request, response) => {
-      const id = request.params.id;
-      concesionarios.deleteOne({ _id: id });
+    // Borrar un concesionario
+    app.delete("/concesionarios/:id", async (request, response) => {
+      try {
+        // Obtenemos los datos de ruta
+        const id = request.params.id;
 
-      response.json({ message: "ok" });
+        await concesionarios.deleteOne({ _id: new ObjectId(id) });
+
+        response.json({ message: "ok" });
+      } catch (e) {
+        console.error("Error al eliminar:", e);
+      }
     });
 
     // Devuelve todos los coches del concesionario
-    app.get("/concesionarios/:id/coches", (request, response) => {
-      const id = request.params.id;
-      //0 para que no aparezca en el resultado y 1 para que aparezca
-      const result = concesionarios.findOne({ _id: id }, { coches: 1, _id: 0 });
-      response.json({ result });
+    app.get("/concesionarios/:id/coches", async (request, response) => {
+      try {
+        // Obtenemos los datos de ruta
+        const id = request.params.id;
+
+        // Encontramos el concesionario y devolvemos solo los coches
+        // (0 para que no aparezca en el resultado y 1 para que aparezca)
+        const result = await concesionarios.findOne(
+          { _id: new ObjectId(id) },
+          { projection: { coches: 1, _id: 0 } }
+        );
+
+        response.json(result);
+      } catch (e) {
+        console.error("Error al listar:", e);
+      }
     });
 
     // Añadir un nuevo coche al concesionario
-    app.post("/concesionarios/:id/coches", (request, response) => {
-      const id = request.params.id;
-      let coches = concesionarios.findOne({ _id: id }, { coches: 1, _id: 0 });
-      coches.push(request.body);
-      concesionarios.updateOne({ _id: id }, { $set: { coches: coches } });
-      response.json({ message: "ok" });
+    app.post("/concesionarios/:id/coches", async (request, response) => {
+      try {
+        // Obtenemos los datos de ruta
+        const id = request.params.id;
+
+        // Encontramos el concesionario y devolvemos solo los coches
+        const concesionario = await concesionarios.findOne(
+          { _id: new ObjectId(id) },
+          { projection: { coches: 1, _id: 0 } }
+        );
+
+        // Sacamos del json coches para tratarlo como un array
+        const coches = concesionario.coches;
+        coches.push(request.body);
+
+        await concesionarios.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { coches: coches } }
+        );
+
+        response.json({ message: "ok" });
+      } catch (e) {
+        console.error("Error al añadir:", e);
+      }
     });
 
     // Obtener un solo coche
-    app.get("/concesionarios/:id/coches/:cocheid", (request, response) => {
-      const id = request.params.id;
-      const cocheid = request.params.cocheid;
-      const result = concesionarios.findOne({ _id: id }, { coches: 1, _id: 0 })[
-        cocheid
-      ];
-      response.json({ result });
-    });
+    app.get(
+      "/concesionarios/:id/coches/:cocheid",
+      async (request, response) => {
+        try {
+          // Obtenemos los datos de ruta
+          const id = request.params.id;
+          const cocheid = request.params.cocheid;
+
+          // Encontramos el concesionario y devolvemos solo los coches
+          const concesionario = await concesionarios.findOne(
+            { _id: new ObjectId(id) },
+            { projection: { coches: 1, _id: 0 } }
+          );
+
+          // Sacamos del json coches para tratarlo como un array
+          const coche = concesionario.coches[cocheid];
+
+          response.json(coche);
+        } catch (e) {
+          console.error("Error al obtener:", e);
+        }
+      }
+    );
 
     // Actualizar un solo coche
-    app.put("/concesionarios/:id/coches/:cocheid", (request, response) => {
-      const id = request.params.id;
-      const cocheid = request.params.cocheid;
-      let coches = concesionarios.findOne({ _id: id }, { coches: 1, _id: 0 });
-      coches[cocheid] = request.body;
-      concesionarios.updateOne({ _id: id }, { $set: { coches: coches } });
+    app.put(
+      "/concesionarios/:id/coches/:cocheid",
+      async (request, response) => {
+        try {
+          // Obtenemos los datos de ruta
+          const id = request.params.id;
+          const cocheid = request.params.cocheid;
 
-      response.json({ message: "ok" });
-    });
+          // Encontramos el concesionario y devolvemos solo los coches
+          const concesionario = await concesionarios.findOne(
+            { _id: new ObjectId(id) },
+            { projection: { coches: 1, _id: 0 } }
+          );
 
-    // Borrar un elemento del array
-    app.delete("/concesionarios/:id/coches/:cocheid", (request, response) => {
-      const id = request.params.id;
-      const cocheid = request.params.cocheid;
-      let coches = concesionarios.findOne({ _id: id }, { coches: 1, _id: 0 });
-      coches.splice(cocheid, 1);
-      concesionarios.updateOne({ _id: id }, { $set: { coches: coches } });
+          // Sacamos del json coches para tratarlo como un array
+          let coches = concesionario.coches;
+          coches[cocheid] = request.body;
 
-      response.json({ message: "ok" });
-    });
-  } finally {
-    // Ensures that the client will close when you finish/error
+          await concesionarios.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { coches: coches } }
+          );
+
+          response.json({ message: "ok" });
+        } catch (e) {
+          console.error("Error al actualizar:", e);
+        }
+      }
+    );
+
+    // Borrar un coche del concesionario
+    app.delete(
+      "/concesionarios/:id/coches/:cocheid",
+      async (request, response) => {
+        try {
+          // Obtenemos los datos de ruta
+          const id = request.params.id;
+          const cocheid = request.params.cocheid;
+
+          // Encontramos el concesionario y devolvemos solo los coches
+          const concesionario = await concesionarios.findOne(
+            { _id: new ObjectId(id) },
+            { projection: { coches: 1, _id: 0 } }
+          );
+
+          // Sacamos del json coches para tratarlo como un array
+          let coches = concesionario.coches;
+          coches.splice(cocheid, 1);
+
+          await concesionarios.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { coches: coches } }
+          );
+
+          response.json({ message: "ok" });
+        } catch (e) {
+          console.error("Error al eliminar:", e);
+        }
+      }
+    );
+  } catch (e) {
+    // Ensures that the client will close when you error
+    console.error("Error al conectar con MongoDB:", e);
     await client.close();
   }
 }
