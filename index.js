@@ -5,9 +5,6 @@
  *      const: es constante y no se puede modificar
  */
 
-// Importar mongodb
-const { MongoClient, ServerApiVersion, Db, ObjectId } = require("mongodb");
-
 // URL de la conexión
 const uri =
   "mongodb+srv://jairopertecarras:0KDqpwXztJapX3mW@cluster0.iqta3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
@@ -15,6 +12,10 @@ const uri =
 // Importamos las bibliotecas necesarias.
 // Concretamente el framework express.
 const express = require("express");
+// Importar mongodb
+const { MongoClient, ServerApiVersion, Db, ObjectId } = require("mongodb");
+// Importar Helmet
+const helmet = require("helmet");
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -39,6 +40,8 @@ async function run() {
 
     // Indicamos que la aplicación puede recibir JSON (API Rest)
     app.use(express.json());
+    // Que también use helmet
+    app.use(helmet());
 
     // Indicamos el puerto en el que vamos a desplegar la aplicación
     const port = process.env.PORT || 8080;
