@@ -16,6 +16,9 @@ const express = require("express");
 const { MongoClient, ServerApiVersion, Db, ObjectId } = require("mongodb");
 // Importar Helmet
 const helmet = require("helmet");
+// Importar el Swagger
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -42,6 +45,8 @@ async function run() {
     app.use(express.json());
     // Que también use helmet
     app.use(helmet());
+    // Configuramos el Swagger
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
     // Indicamos el puerto en el que vamos a desplegar la aplicación
     const port = process.env.PORT || 8080;
@@ -130,7 +135,7 @@ async function run() {
         const id = request.params.id;
 
         // Encontramos el concesionario y devolvemos solo los coches
-        // (0 para que no aparezca en el resultado y 1 para que aparezca)
+        // projection para sacar lo indicado (0 para que no aparezca en el resultado y 1 para que aparezca)
         const result = await concesionarios.findOne(
           { _id: new ObjectId(id) },
           { projection: { coches: 1, _id: 0 } }
