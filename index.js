@@ -135,7 +135,7 @@ async function run() {
         const id = request.params.id;
 
         // Encontramos el concesionario y devolvemos solo los coches
-        // (0 para que no aparezca en el resultado y 1 para que aparezca)
+        // projection para sacar lo indicado (0 para que no aparezca en el resultado y 1 para que aparezca)
         const result = await concesionarios.findOne(
           { _id: new ObjectId(id) },
           { projection: { coches: 1, _id: 0 } }
